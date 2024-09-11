@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'nestjs-prisma';
 import { UpstashRedisModule } from 'nestjs-upstash-redis';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UpstashRedisModule } from 'nestjs-upstash-redis';
       url: process.env.UPSTASH_REDIS_URL,
       token: process.env.UPSTASH_REDIS_TOKEN,
     }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
