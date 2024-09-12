@@ -36,9 +36,11 @@ export class CreateUserDto {
 }
 
 export class ActivateUserDto {
+  @ApiProperty()
   @IsNotEmpty()
   activationCode: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   activationToken: string;
 }

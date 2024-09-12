@@ -44,6 +44,7 @@ export class UsersService {
       });
 
       return {
+        message: 'Activation email sent successfully',
         activationCode: activationCode,
         activationToken: token,
       };
