@@ -8,7 +8,7 @@ import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post('/signup')
   @ApiResponse({
     status: 201,
     description: 'User has been successfully created.',
@@ -28,8 +28,8 @@ export class UsersController {
       },
     },
   })
-  async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
+  async signup(@Body() createUserDto: CreateUserDto) {
+    const user = await this.usersService.signup(createUserDto);
     return user;
   }
 }

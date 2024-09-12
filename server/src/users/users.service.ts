@@ -1,30 +1,20 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-} from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma/dist/prisma.service';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/users.dto';
-import { extendCreateQuery } from './utils/extendCreateQuery.util';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {
-    //@ts-expect-error Extend the "CREATE query" to hash password before creating the user
-    this.prisma = extendCreateQuery();
-  }
+  constructor(private authService: AuthService) {}
 
-  async create(user: CreateUserDto) {
+  async signup(user: CreateUserDto) {
     try {
-      const createdUser = await this.prisma.user.create({
-        data: user,
-      });
-      return createdUser;
+      const { token, activationCode } =
+        await this.authService.createActivationToken(user);
+      return {
+        activationCode: activationCode,
+        activationToken: token,
+      };
     } catch (error) {
-      //check if the error reason that user already exists
-      if (error.code === 'P2002') {
-        throw new ConflictException({ message: 'User already exists' });
-      }
       throw new BadRequestException();
     }
   }
