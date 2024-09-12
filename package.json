@@ -1,0 +1,9 @@
+{
+  "name": "lms",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:server": "cd server && npm run dev"
+  },
+  "author": "Yousef Medhat",
+  "license": "ISC"
+}
