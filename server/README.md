@@ -21,4 +21,4 @@ $ npm run dev
 ## API Documentation
 To explore the API documentation using Swagger UI:
 1. Run the application.
-2. If the app runs on `port` 3000, go to `localhost:3000/docs`
+2. If you are running the app on `port` 3000, go to `localhost:3000/docs` to view the documentation.
