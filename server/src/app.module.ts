@@ -8,6 +8,8 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { EmailModule } from './email/email.module';
+import { join } from 'path';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 
 @Module({
   imports: [
@@ -23,6 +25,10 @@ import { EmailModule } from './email/email.module';
           user: process.env.EMAIL_USERNAME,
           pass: process.env.EMAIL_PASSWORD,
         },
+      },
+      template: {
+        dir: join(__dirname, 'email', 'templates'),
+        adapter: new EjsAdapter(),
       },
     }),
     // PRISMA

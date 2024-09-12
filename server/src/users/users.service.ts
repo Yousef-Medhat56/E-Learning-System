@@ -6,12 +6,14 @@ import {
 import { ActivateUserDto, CreateUserDto } from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'nestjs-prisma';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private prisma: PrismaService,
     private authService: AuthService,
+    private emailService: EmailService,
   ) {}
 
   async signup(user: CreateUserDto) {
@@ -32,6 +34,14 @@ export class UsersService {
       // create activation token and code
       const { token, activationCode } =
         await this.authService.createActivationToken(user);
+
+      // send activation email
+      await this.emailService.sendEmail({
+        emailTo: user.email,
+        subject: 'E-Learning | Activate your account',
+        template: 'activation-email.ejs',
+        data: { user, activationCode },
+      });
 
       return {
         activationCode: activationCode,
