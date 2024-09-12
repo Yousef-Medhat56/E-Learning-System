@@ -34,3 +34,11 @@ export class CreateUserDto {
   @IsBoolean()
   isVerified?: boolean;
 }
+
+export class ActivateUserDto {
+  @IsNotEmpty()
+  activationCode: string;
+
+  @IsNotEmpty()
+  activationToken: string;
+}
