@@ -3,9 +3,10 @@ import { UsersService } from './users.service';
 import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { AuthRequest } from 'src/auth/interfaces/auth.interface';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
+
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -114,8 +115,8 @@ export class UsersController {
     return user;
   }
 
-  @UseGuards(AuthGuard)
   @Post('/logout')
+  @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Logout the user',
   })
