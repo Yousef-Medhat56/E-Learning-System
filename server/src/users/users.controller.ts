@@ -1,8 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Res } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-
+import { Response } from 'express';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -66,8 +66,23 @@ export class UsersController {
   }
 
   @Post('/login')
-  async login(@Body() loginUserDto: LoginUserDto) {
-    const user = await this.usersService.login(loginUserDto);
+  async login(
+    @Body() loginUserDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { accessToken, refreshToken, user } =
+      await this.usersService.login(loginUserDto);
+
+    res.cookie('access_token', accessToken, {
+      maxAge: Number(process.env.ACCESS_TOKEN_EXPIRE) * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+    res.cookie('refresh_token', refreshToken, {
+      maxAge: Number(process.env.REFRESH_TOKEN_EXPIRE) * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
     return user;
   }
 }

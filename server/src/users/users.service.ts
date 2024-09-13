@@ -34,7 +34,7 @@ export class UsersService {
     try {
       // create activation token and code
       const { token, activationCode } =
-        await this.authService.createActivationToken(user);
+        await this.authService.signActivationToken(user);
 
       // send activation email
       await this.emailService.sendEmail({
@@ -57,7 +57,7 @@ export class UsersService {
   async activate(activateUserDto: ActivateUserDto) {
     try {
       // get the user data from the activation token
-      const user = await this.authService.activate(activateUserDto);
+      const user = await this.authService.verifyActivation(activateUserDto);
       //create new user
       const createdUser = await this.prisma.user.create({
         data: user,
@@ -84,7 +84,9 @@ export class UsersService {
           user.password,
         );
         if (isCorrectPass) {
-          return user;
+          const accessToken = await this.authService.signAccessToken(user.id);
+          const refreshToken = await this.authService.signRefreshToken(user.id);
+          return { accessToken, refreshToken, user };
         } else {
           throw new BadRequestException('Incorrect email or password');
         }

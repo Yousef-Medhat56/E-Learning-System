@@ -8,7 +8,7 @@ import { ActivationTokenPayload } from './interfaces/auth.interface';
 export class AuthService {
   constructor(private jwtService: JwtService) {}
 
-  async createActivationToken(user: CreateUserDto) {
+  async signActivationToken(user: CreateUserDto) {
     //create activation code
     const activationCode = this.createActivationCode();
 
@@ -20,7 +20,7 @@ export class AuthService {
 
     // sign JWT token
     const token = await this.jwtService.signAsync(payload, {
-      secret: process.env.ACTIVATION_SECRET,
+      secret: process.env.ACTIVATION_TOKEN_SECRET,
       expiresIn: '1h',
     });
 
@@ -42,14 +42,14 @@ export class AuthService {
     return isCorrect;
   }
 
-  async activate({
+  async verifyActivation({
     activationCode: givenActivationCode,
     activationToken,
   }: ActivateUserDto) {
     // verify token
     const { user, activationCode } = (await this.jwtService.verifyAsync(
       activationToken,
-      { secret: process.env.ACTIVATION_SECRET },
+      { secret: process.env.ACTIVATION_TOKEN_SECRET },
     )) as ActivationTokenPayload;
 
     // check if the given activation code is correct
@@ -58,5 +58,30 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async signAccessToken(id: string) {
+    // JWT payload
+    const payload = { id };
+
+    // sign JWT token
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.ACCESS_TOKEN_SECRET,
+      expiresIn: Number(process.env.ACCESS_TOKEN_EXPIRE),
+    });
+
+    return accessToken;
+  }
+  async signRefreshToken(id: string) {
+    // JWT payload
+    const payload = { id };
+
+    // sign JWT token
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.REFRESH_TOKEN_SECRET,
+      expiresIn: Number(process.env.REFRESH_TOKEN_EXPIRE),
+    });
+
+    return refreshToken;
   }
 }
