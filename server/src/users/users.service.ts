@@ -87,8 +87,14 @@ export class UsersService {
         );
         if (isCorrectPass) {
           // create tokens
-          const accessToken = await this.authService.signAccessToken(user.id);
-          const refreshToken = await this.authService.signRefreshToken(user.id);
+          const accessToken = await this.authService.signAccessToken({
+            id: user.id,
+            role: user.role,
+          });
+          const refreshToken = await this.authService.signRefreshToken({
+            id: user.id,
+            role: user.role,
+          });
 
           // store user in cache
           this.redisService.set(user.id, JSON.stringify(user));

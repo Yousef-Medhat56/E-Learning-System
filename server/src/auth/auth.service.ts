@@ -2,7 +2,10 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ActivateUserDto, CreateUserDto } from 'src/users/dto/users.dto';
 import * as bcrypt from 'bcrypt';
-import { ActivationTokenPayload } from './interfaces/auth.interface';
+import {
+  ActivationTokenPayload,
+  AuthTokenPayload,
+} from './interfaces/auth.interface';
 
 @Injectable()
 export class AuthService {
@@ -60,9 +63,9 @@ export class AuthService {
     return user;
   }
 
-  async signAccessToken(id: string) {
+  async signAccessToken({ id, role }: AuthTokenPayload) {
     // JWT payload
-    const payload = { id };
+    const payload = { id, role };
 
     // sign JWT token
     const accessToken = await this.jwtService.signAsync(payload, {
@@ -72,9 +75,9 @@ export class AuthService {
 
     return accessToken;
   }
-  async signRefreshToken(id: string) {
+  async signRefreshToken({ id, role }: AuthTokenPayload) {
     // JWT payload
-    const payload = { id };
+    const payload = { id, role };
 
     // sign JWT token
     const refreshToken = await this.jwtService.signAsync(payload, {
