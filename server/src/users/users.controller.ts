@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ActivateUserDto, CreateUserDto } from './dto/users.dto';
+import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Users')
@@ -62,6 +62,12 @@ export class UsersController {
   })
   async activate(@Body() activateUserDto: ActivateUserDto) {
     const user = await this.usersService.activate(activateUserDto);
+    return user;
+  }
+
+  @Post('/login')
+  async login(@Body() loginUserDto: LoginUserDto) {
+    const user = await this.usersService.login(loginUserDto);
     return user;
   }
 }

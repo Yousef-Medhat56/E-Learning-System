@@ -37,6 +37,11 @@ export class AuthService {
     return hashedPass;
   }
 
+  async comparePassword(plainPassword: string, hashedPassword: string) {
+    const isCorrect = await bcrypt.compare(plainPassword, hashedPassword);
+    return isCorrect;
+  }
+
   async activate({
     activationCode: givenActivationCode,
     activationToken,

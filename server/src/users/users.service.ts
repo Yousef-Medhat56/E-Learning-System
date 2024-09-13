@@ -2,8 +2,9 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { ActivateUserDto, CreateUserDto } from './dto/users.dto';
+import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'nestjs-prisma';
 import { EmailService } from 'src/email/email.service';
@@ -68,6 +69,30 @@ export class UsersService {
         throw new ConflictException('User already exists');
       }
       throw new BadRequestException();
+    }
+  }
+
+  async login(loginUserDto: LoginUserDto) {
+    try {
+      const { email, password } = loginUserDto;
+      const user = await this.prisma.user.findUnique({ where: { email } });
+
+      if (user) {
+        //check if the password is correct
+        const isCorrectPass = await this.authService.comparePassword(
+          password,
+          user.password,
+        );
+        if (isCorrectPass) {
+          return user;
+        } else {
+          throw new BadRequestException('Incorrect email or password');
+        }
+      } else {
+        throw new NotFoundException('User does not exist');
+      }
+    } catch (error) {
+      throw error;
     }
   }
 }

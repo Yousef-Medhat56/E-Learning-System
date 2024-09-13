@@ -44,3 +44,12 @@ export class ActivateUserDto {
   @IsNotEmpty()
   activationToken: string;
 }
+
+export class LoginUserDto {
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty()
+  password: string;
+}
