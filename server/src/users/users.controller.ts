@@ -26,7 +26,7 @@ export class UsersController {
       example: {
         value: {
           name: 'Yousef Medhat',
-          email: 'yousef.medhat564@gmail.com',
+          email: 'example@gmail.com',
           password: '123456',
         },
       },
@@ -66,6 +66,28 @@ export class UsersController {
   }
 
   @Post('/login')
+  @ApiOperation({
+    summary:
+      'Authenticates a user, returning their user data, and setting access and refresh token cookies.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Authenicated',
+  })
+  @ApiResponse({ status: 400, description: 'Incorrect email or password' })
+  @ApiResponse({ status: 404, description: "User doesn't exist" })
+  @ApiBody({
+    type: LoginUserDto,
+    required: true,
+    examples: {
+      example: {
+        value: {
+          email: 'example@gmail.com',
+          password: '123456',
+        },
+      },
+    },
+  })
   async login(
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
