@@ -1,13 +1,18 @@
-import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthRequest } from 'src/auth/interfaces/auth.interface';
+import { UpstashRedisService } from 'nestjs-upstash-redis';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private redisService: UpstashRedisService,
+  ) {}
 
   @Post('/signup')
   @ApiOperation({
@@ -114,7 +119,11 @@ export class UsersController {
   @ApiOperation({
     summary: 'Logout the user',
   })
-  logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Req() req: AuthRequest, @Res({ passthrough: true }) res: Response) {
+    const { id } = req.user;
+
+    // delete user from cache
+    this.redisService.del(id);
     res.cookie('access_token', '', {
       maxAge: 1,
     });

@@ -8,6 +8,7 @@ import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'nestjs-prisma';
 import { EmailService } from 'src/email/email.service';
+import { UpstashRedisService } from 'nestjs-upstash-redis';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,7 @@ export class UsersService {
     private prisma: PrismaService,
     private authService: AuthService,
     private emailService: EmailService,
+    private redisService: UpstashRedisService,
   ) {}
 
   async signup(user: CreateUserDto) {
@@ -84,8 +86,12 @@ export class UsersService {
           user.password,
         );
         if (isCorrectPass) {
+          // create tokens
           const accessToken = await this.authService.signAccessToken(user.id);
           const refreshToken = await this.authService.signRefreshToken(user.id);
+
+          // store user in cache
+          this.redisService.set(user.id, JSON.stringify(user));
           return { accessToken, refreshToken, user };
         } else {
           throw new BadRequestException('Incorrect email or password');
