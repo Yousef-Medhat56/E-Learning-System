@@ -107,4 +107,17 @@ export class UsersController {
     });
     return user;
   }
+
+  @Post('/logout')
+  @ApiOperation({
+    summary: 'Logout the user',
+  })
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.cookie('access_token', '', {
+      maxAge: 1,
+    });
+    res.cookie('refresh_token', '', {
+      maxAge: 1,
+    });
+  }
 }
