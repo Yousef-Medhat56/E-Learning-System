@@ -1,8 +1,9 @@
-import { Body, Controller, Post, Res } from '@nestjs/common';
+import { Body, Controller, Post, Res, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { AuthGuard } from 'src/auth/auth.guard';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -108,6 +109,7 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(AuthGuard)
   @Post('/logout')
   @ApiOperation({
     summary: 'Logout the user',
