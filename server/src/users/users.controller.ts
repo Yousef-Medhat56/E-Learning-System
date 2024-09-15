@@ -194,6 +194,27 @@ export class UsersController {
   }
 
   @Post('/social-signup')
+  @ApiOperation({
+    summary: 'Signup new user by social media',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'User created successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'User already exists' })
+  @ApiBody({
+    type: SocialSignupUserDto,
+    required: true,
+    examples: {
+      example: {
+        value: {
+          name: 'Yousef Medhat',
+          email: 'example@gmail.com',
+        },
+      },
+    },
+  })
   async socialSignup(
     @Body() createUserDto: SocialSignupUserDto,
     @Res({ passthrough: true }) res: Response,
