@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -160,5 +168,14 @@ export class UsersController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
     });
+  }
+
+  @Get('/me')
+  @UseGuards(AuthGuard)
+  async me(@Req() req: AuthRequest) {
+    // user id
+    const { id } = req.user;
+    const user = await this.usersService.getUserById(id);
+    return user;
   }
 }

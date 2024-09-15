@@ -128,4 +128,13 @@ export class UsersService {
       throw new ForbiddenException();
     }
   }
+
+  async getUserById(id: string) {
+    try {
+      const user = await this.prisma.user.findFirstOrThrow({ where: { id } });
+      return user;
+    } catch (error) {
+      throw new NotFoundException("User doesn't exist");
+    }
+  }
 }
