@@ -172,6 +172,15 @@ export class UsersController {
 
   @Get('/me')
   @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Get info of the current authinticated user',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Authenicated',
+  })
+  @ApiResponse({ status: 401, description: 'Not valid access token' })
+  @ApiResponse({ status: 404, description: "User doesn't exist" })
   async me(@Req() req: AuthRequest) {
     // user id
     const { id } = req.user;
