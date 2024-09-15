@@ -18,8 +18,18 @@ import { UpstashRedisService } from 'nestjs-upstash-redis';
 
 @Injectable()
 export class UsersService {
+  // omit user password
+  private prisma: PrismaService = new PrismaService({
+    prismaOptions: {
+      omit: {
+        user: {
+          password: true,
+        },
+      },
+    },
+  });
+
   constructor(
-    private prisma: PrismaService,
     private authService: AuthService,
     private emailService: EmailService,
     private redisService: UpstashRedisService,
@@ -83,7 +93,10 @@ export class UsersService {
   async login(loginUserDto: LoginUserDto) {
     try {
       const { email, password } = loginUserDto;
-      const user = await this.prisma.user.findUnique({ where: { email } });
+      const user = await this.prisma.user.findUnique({
+        where: { email },
+        select: { id: true, password: true, role: true },
+      });
 
       if (user) {
         //check if the password is correct
@@ -136,7 +149,9 @@ export class UsersService {
 
   async getUserById(id: string) {
     try {
-      const user = await this.prisma.user.findFirstOrThrow({ where: { id } });
+      const user = await this.prisma.user.findFirstOrThrow({
+        where: { id },
+      });
       return user;
     } catch (error) {
       throw new NotFoundException("User doesn't exist");
