@@ -5,7 +5,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
+import {
+  ActivateUserDto,
+  CreateUserDto,
+  LoginUserDto,
+  SocialSignupUserDto,
+} from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'nestjs-prisma';
 import { EmailService } from 'src/email/email.service';
@@ -135,6 +140,35 @@ export class UsersService {
       return user;
     } catch (error) {
       throw new NotFoundException("User doesn't exist");
+    }
+  }
+
+  async socialSignup(createUserDto: SocialSignupUserDto) {
+    try {
+      const { name, email } = createUserDto;
+
+      //create the new user
+      const createdUser = await this.prisma.user.create({
+        data: { name, email },
+      });
+
+      // create tokens
+      const accessToken = await this.authService.signAccessToken({
+        id: createdUser.id,
+        role: createdUser.role,
+      });
+      const refreshToken = await this.authService.signRefreshToken({
+        id: createdUser.id,
+        role: createdUser.role,
+      });
+
+      return { user: createdUser, accessToken, refreshToken };
+    } catch (error) {
+      //check if the error reason that user already exists
+      if (error.code === 'P2002') {
+        throw new ConflictException('User already exists');
+      }
+      throw new BadRequestException();
     }
   }
 }

@@ -55,3 +55,16 @@ export class LoginUserDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class SocialSignupUserDto {
+  @ApiProperty({ description: 'A valid email address' })
+  @IsNotEmpty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  name: string;
+
+  //TODO: Add Avatar
+}

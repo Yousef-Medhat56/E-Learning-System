@@ -8,7 +8,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
+import {
+  ActivateUserDto,
+  CreateUserDto,
+  LoginUserDto,
+  SocialSignupUserDto,
+} from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -185,6 +190,29 @@ export class UsersController {
     // user id
     const { id } = req.user;
     const user = await this.usersService.getUserById(id);
+    return user;
+  }
+
+  @Post('/social-signup')
+  async socialSignup(
+    @Body() createUserDto: SocialSignupUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, accessToken, refreshToken } =
+      await this.usersService.socialSignup(createUserDto);
+
+    // send new tokens to cookies
+    res.cookie('access_token', accessToken, {
+      maxAge: Number(process.env.ACCESS_TOKEN_EXPIRE) * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+    res.cookie('refresh_token', refreshToken, {
+      maxAge: Number(process.env.REFRESH_TOKEN_EXPIRE) * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+
     return user;
   }
 }
