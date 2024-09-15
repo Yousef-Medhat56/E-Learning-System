@@ -2,7 +2,7 @@ import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ActivateUserDto, CreateUserDto, LoginUserDto } from './dto/users.dto';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { AuthRequest } from 'src/auth/interfaces/auth.interface';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
@@ -130,6 +130,35 @@ export class UsersController {
     });
     res.cookie('refresh_token', '', {
       maxAge: 1,
+    });
+  }
+
+  @Post('/refresh')
+  @ApiOperation({
+    summary: 'Refresh tokens',
+  })
+  @ApiResponse({ status: 201, description: 'Tokens updated successfully' })
+  @ApiResponse({ status: 404, description: 'Forbidden' })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    // get refresh_Token from the cookie
+    const oldRefreshToken = req.cookies.refresh_token as string;
+    // the new tokens
+    const { accessToken, refreshToken } =
+      await this.usersService.refresh(oldRefreshToken);
+
+    // send new tokens to cookies
+    res.cookie('access_token', accessToken, {
+      maxAge: Number(process.env.ACCESS_TOKEN_EXPIRE) * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    });
+    res.cookie('refresh_token', refreshToken, {
+      maxAge: Number(process.env.REFRESH_TOKEN_EXPIRE) * 1000,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
     });
   }
 }

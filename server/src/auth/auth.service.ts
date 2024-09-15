@@ -87,4 +87,21 @@ export class AuthService {
 
     return refreshToken;
   }
+
+  async updateTokens(refreshToken: string) {
+    // verify token
+    const { id, role } = (await this.jwtService.verifyAsync(refreshToken, {
+      secret: process.env.Refresh_TOKEN_SECRET,
+    })) as AuthTokenPayload;
+
+    // create new tokens
+    const newAccessToken = await this.signAccessToken({ id, role });
+    const newRefreshToken = await this.signRefreshToken({ id, role });
+
+    return {
+      userId: id,
+      accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
 }

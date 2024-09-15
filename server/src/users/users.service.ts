@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -107,6 +108,24 @@ export class UsersService {
       }
     } catch (error) {
       throw error;
+    }
+  }
+
+  async refresh(oldRefreshToken: string) {
+    try {
+      // check that the refresh token exists
+      if (oldRefreshToken) {
+        // get the userId and the new tokens
+        const { userId, ...tokens } =
+          await this.authService.updateTokens(oldRefreshToken);
+
+        // get the user data from cache
+        const user = await this.redisService.get(userId);
+        if (user) return tokens;
+      }
+      throw new ForbiddenException();
+    } catch (error) {
+      throw new ForbiddenException();
     }
   }
 }
