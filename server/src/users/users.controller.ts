@@ -14,7 +14,13 @@ import {
   LoginUserDto,
   SocialSignupUserDto,
 } from './dto/users.dto';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { AuthRequest } from 'src/auth/interfaces/auth.interface';
@@ -129,6 +135,7 @@ export class UsersController {
   }
 
   @Post('/logout')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Logout the user',
@@ -147,8 +154,9 @@ export class UsersController {
   }
 
   @Post('/refresh')
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Refresh tokens',
+    summary: 'Update tokens',
   })
   @ApiResponse({ status: 201, description: 'Tokens updated successfully' })
   @ApiResponse({ status: 404, description: 'Forbidden' })
@@ -177,6 +185,7 @@ export class UsersController {
 
   @Get('/me')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get info of the current authinticated user',
   })

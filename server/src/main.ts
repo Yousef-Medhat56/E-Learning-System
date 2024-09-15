@@ -15,7 +15,13 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   // SWAGGER
-  const config = new DocumentBuilder().setTitle('E-Learning API').build();
+  const config = new DocumentBuilder()
+    .setTitle('E-Learning API')
+    .addBearerAuth({
+      in: 'header',
+      type: 'http',
+    })
+    .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
