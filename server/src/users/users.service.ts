@@ -213,6 +213,8 @@ export class UsersService {
         data: updateData,
       });
 
+      // update user data in cache
+      await this.redisService.set(id, JSON.stringify(updatedUser));
       return updatedUser;
     } catch (error) {
       //check if the error reason that email already exists
