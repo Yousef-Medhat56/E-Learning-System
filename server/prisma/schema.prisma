@@ -28,6 +28,7 @@ model User {
 
 model UserAvatar {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  public_id String?
   url       String
   userId    String   @unique @db.ObjectId
   User      User     @relation(fields: [userId], references: [id])
