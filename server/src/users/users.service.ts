@@ -10,6 +10,7 @@ import {
   CreateUserDto,
   LoginUserDto,
   SocialSignupUserDto,
+  UpdatePasswordDto,
   UpdateUserInfoDto,
 } from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
@@ -97,7 +98,16 @@ export class UsersService {
       const { email, password } = loginUserDto;
       const user = await this.prisma.user.findUnique({
         where: { email },
-        select: { id: true, password: true, role: true },
+        select: {
+          id: true,
+          password: true, // select the password
+          name: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
 
       if (user) {
@@ -116,6 +126,9 @@ export class UsersService {
             id: user.id,
             role: user.role,
           });
+
+          // delete password from the user object
+          delete user.password;
 
           // store user in cache
           this.redisService.set(user.id, JSON.stringify(user));
@@ -221,6 +234,37 @@ export class UsersService {
       if (error.code === 'P2002') {
         throw new ConflictException('Email already exists');
       }
+      throw new BadRequestException();
+    }
+  }
+
+  async updatePassword(id: string, updatePasswordDto: UpdatePasswordDto) {
+    const { oldPassword, newPassword } = updatePasswordDto;
+    try {
+      // get the user old password
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+        select: { password: true },
+      });
+
+      // check that the given password is correct
+      const isCorrectPass = await this.authService.comparePassword(
+        oldPassword,
+        user.password,
+      );
+      if (!isCorrectPass) throw new BadRequestException();
+
+      //hash the new password
+      const newPassHashed = await this.authService.hashPassword(newPassword);
+
+      // update the password
+      await this.prisma.user.update({
+        where: { id },
+        data: { password: newPassHashed },
+      });
+
+      return { message: 'Password updated successfully' };
+    } catch (error) {
       throw new BadRequestException();
     }
   }

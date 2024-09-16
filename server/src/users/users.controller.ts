@@ -13,6 +13,7 @@ import {
   CreateUserDto,
   LoginUserDto,
   SocialSignupUserDto,
+  UpdatePasswordDto,
   UpdateUserInfoDto,
 } from './dto/users.dto';
 import {
@@ -264,6 +265,17 @@ export class UsersController {
   ) {
     const { id } = req.user;
     const user = await this.usersService.updateInfo(id, updateUserInfoDto);
+    return user;
+  }
+
+  @Post('/update-password')
+  @UseGuards(AuthGuard)
+  async updatePassword(
+    @Body() updatePasswordDto: UpdatePasswordDto,
+    @Req() req: AuthRequest,
+  ) {
+    const { id } = req.user;
+    const user = await this.usersService.updatePassword(id, updatePasswordDto);
     return user;
   }
 }

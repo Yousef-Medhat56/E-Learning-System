@@ -81,3 +81,14 @@ export class UpdateUserInfoDto {
   @IsString()
   name: string;
 }
+
+export class UpdatePasswordDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  oldPassword: string;
+
+  @ApiProperty({ minLength: 6 })
+  @IsNotEmpty()
+  @Length(6)
+  newPassword: string;
+}
