@@ -248,6 +248,16 @@ export class UsersController {
   }
   @Post('/update-info')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update user info: email, name',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'User updated successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Email already exists' })
   async updateInfo(
     @Body() updateUserInfoDto: UpdateUserInfoDto,
     @Req() req: AuthRequest,
