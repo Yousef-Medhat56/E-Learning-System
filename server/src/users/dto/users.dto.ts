@@ -94,7 +94,7 @@ export class UpdatePasswordDto {
 }
 
 export class AvatarDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'Base64 encoded image' })
   @IsNotEmpty()
   @IsString()
   avatar: string;

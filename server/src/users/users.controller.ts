@@ -271,6 +271,15 @@ export class UsersController {
 
   @Post('/update-password')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update user password',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Password updated successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
   async updatePassword(
     @Body() updatePasswordDto: UpdatePasswordDto,
     @Req() req: AuthRequest,
@@ -282,6 +291,18 @@ export class UsersController {
 
   @Post('/update-avatar')
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Update user avatar',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Password updated successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+  })
   async updateAvatar(@Body() avatarDto: AvatarDto, @Req() req: AuthRequest) {
     const { id } = req.user;
     const user = await this.usersService.updateAvatar(id, avatarDto);
