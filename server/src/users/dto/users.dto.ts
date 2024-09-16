@@ -6,6 +6,7 @@ import {
   IsIn,
   IsNotEmpty,
   IsOptional,
+  IsString,
   Length,
 } from 'class-validator';
 
@@ -67,4 +68,16 @@ export class SocialSignupUserDto {
   name: string;
 
   //TODO: Add Avatar
+}
+
+export class UpdateUserInfoDto {
+  @ApiProperty()
+  @IsOptional()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  name: string;
 }

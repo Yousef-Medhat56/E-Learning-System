@@ -10,11 +10,13 @@ import {
   CreateUserDto,
   LoginUserDto,
   SocialSignupUserDto,
+  UpdateUserInfoDto,
 } from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'nestjs-prisma';
 import { EmailService } from 'src/email/email.service';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -182,6 +184,40 @@ export class UsersService {
       //check if the error reason that user already exists
       if (error.code === 'P2002') {
         throw new ConflictException('User already exists');
+      }
+      throw new BadRequestException();
+    }
+  }
+
+  async updateInfo(id: string, updateUserInfoDto: UpdateUserInfoDto) {
+    const { email, name } = updateUserInfoDto;
+    try {
+      // Create an empty object to store update data
+      const updateData: Partial<User> = {};
+
+      if (email) {
+        updateData.email = email;
+      }
+
+      if (name) {
+        updateData.name = name;
+      }
+      //check if the updateData is empty
+      if (Object.keys(updateData).length == 0) {
+        throw new BadRequestException();
+      }
+
+      // update the user
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: updateData,
+      });
+
+      return updatedUser;
+    } catch (error) {
+      //check if the error reason that email already exists
+      if (error.code === 'P2002') {
+        throw new ConflictException('Email already exists');
       }
       throw new BadRequestException();
     }

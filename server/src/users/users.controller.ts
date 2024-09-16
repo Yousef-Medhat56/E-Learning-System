@@ -13,6 +13,7 @@ import {
   CreateUserDto,
   LoginUserDto,
   SocialSignupUserDto,
+  UpdateUserInfoDto,
 } from './dto/users.dto';
 import {
   ApiBearerAuth,
@@ -243,6 +244,16 @@ export class UsersController {
       secure: process.env.NODE_ENV === 'production',
     });
 
+    return user;
+  }
+  @Post('/update-info')
+  @UseGuards(AuthGuard)
+  async updateInfo(
+    @Body() updateUserInfoDto: UpdateUserInfoDto,
+    @Req() req: AuthRequest,
+  ) {
+    const { id } = req.user;
+    const user = await this.usersService.updateInfo(id, updateUserInfoDto);
     return user;
   }
 }
