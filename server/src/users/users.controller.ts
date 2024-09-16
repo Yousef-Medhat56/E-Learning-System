@@ -10,6 +10,7 @@ import {
 import { UsersService } from './users.service';
 import {
   ActivateUserDto,
+  AvatarDto,
   CreateUserDto,
   LoginUserDto,
   SocialSignupUserDto,
@@ -276,6 +277,14 @@ export class UsersController {
   ) {
     const { id } = req.user;
     const user = await this.usersService.updatePassword(id, updatePasswordDto);
+    return user;
+  }
+
+  @Post('/update-avatar')
+  @UseGuards(AuthGuard)
+  async updateAvatar(@Body() avatarDto: AvatarDto, @Req() req: AuthRequest) {
+    const { id } = req.user;
+    const user = await this.usersService.updateAvatar(id, avatarDto);
     return user;
   }
 }

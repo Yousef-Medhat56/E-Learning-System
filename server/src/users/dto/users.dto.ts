@@ -92,3 +92,10 @@ export class UpdatePasswordDto {
   @Length(6)
   newPassword: string;
 }
+
+export class AvatarDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  avatar: string;
+}

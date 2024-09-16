@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   ActivateUserDto,
+  AvatarDto,
   CreateUserDto,
   LoginUserDto,
   SocialSignupUserDto,
@@ -18,6 +19,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { EmailService } from 'src/email/email.service';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
 import { User } from '@prisma/client';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +30,10 @@ export class UsersService {
         user: {
           password: true,
         },
+        userAvatar: {
+          id: true,
+          userId: true,
+        },
       },
     },
   });
@@ -36,6 +42,7 @@ export class UsersService {
     private authService: AuthService,
     private emailService: EmailService,
     private redisService: UpstashRedisService,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async signup(user: CreateUserDto) {
@@ -166,6 +173,7 @@ export class UsersService {
     try {
       const user = await this.prisma.user.findFirstOrThrow({
         where: { id },
+        include: { avatar: true },
       });
       return user;
     } catch (error) {
@@ -264,6 +272,50 @@ export class UsersService {
       });
 
       return { message: 'Password updated successfully' };
+    } catch (error) {
+      throw new BadRequestException();
+    }
+  }
+
+  async updateAvatar(id: string, avatarDto: AvatarDto) {
+    try {
+      // get the old avatar
+      const { avatar } = await this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          avatar: true,
+        },
+      });
+
+      // upload new avatar to cloudinary
+      const { publicId, url } = await this.cloudinaryService.uploadUserAvatar({
+        publicId: avatar ? avatar.public_id : undefined,
+        avatar: avatarDto.avatar,
+      });
+
+      // update the user avatar
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: {
+          avatar: {
+            upsert: {
+              create: {
+                url,
+                public_id: publicId,
+              },
+              update: {
+                url,
+                public_id: publicId,
+              },
+            },
+          },
+        },
+        include: {
+          avatar: true,
+        },
+      });
+
+      return updatedUser;
     } catch (error) {
       throw new BadRequestException();
     }
