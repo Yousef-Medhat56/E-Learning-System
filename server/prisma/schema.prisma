@@ -15,25 +15,25 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  email      String      @unique
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  email      String   @unique
   name       String
   password   String?
-  avatar     UserAvatar?
-  role       Role        @default(USER)
-  isVerified Boolean     @default(false)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  role       Role     @default(USER)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  avatar     Media?   @relation(fields: [avatarId], references: [id])
+  avatarId   String?  @unique @db.ObjectId
 }
 
-model UserAvatar {
+model Media {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   public_id String?
   url       String
-  userId    String   @unique @db.ObjectId
-  User      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  user User?
 }
 
 enum Role {
