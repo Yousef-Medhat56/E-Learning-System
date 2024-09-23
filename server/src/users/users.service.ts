@@ -30,7 +30,7 @@ export class UsersService {
         user: {
           password: true,
         },
-        media: {
+        userAvatar: {
           id: true,
         },
       },

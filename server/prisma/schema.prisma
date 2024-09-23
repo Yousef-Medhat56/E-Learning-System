@@ -15,28 +15,144 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  email      String   @unique
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  email      String      @unique
   name       String
   password   String?
-  role       Role     @default(USER)
-  isVerified Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  avatar     Media?   @relation(fields: [avatarId], references: [id])
-  avatarId   String?  @unique @db.ObjectId
+  role       Role        @default(USER)
+  isVerified Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  avatar     UserAvatar?
+  comments   Comment[]
+  reviews    Review[]
 }
 
-model Media {
+model UserAvatar {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   public_id String?
   url       String
+  userId    String   @unique @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User?
 }
 
 enum Role {
   USER
   ADMIN
+}
+
+model Video {
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
+  url             String?
+  description     String?
+  player          String?
+  duration        Int?
+  thumbnail       VideoThumbnail?
+  courseSection   CourseSection   @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String          @unique @db.ObjectId
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model VideoThumbnail {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  public_id String?
+  url       String
+  videoId   String   @unique @db.ObjectId
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id      String      @id @default(auto()) @map("_id") @db.ObjectId
+  label   String
+  courses CourseTag[]
+}
+
+model Link {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  text            String
+  url             String
+  CourseSection   CourseSection? @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String?        @db.ObjectId
+}
+
+model Comment {
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  text            String
+  parentId        String?       @db.ObjectId
+  parent          Comment?      @relation("CommentToReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies         Comment[]     @relation("CommentToReplies")
+  user            User          @relation(fields: [userId], references: [id])
+  userId          String        @db.ObjectId
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String        @db.ObjectId
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Course {
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String
+  price          Int
+  estimatedPrice Int?
+  demoUrl        String?
+  level          Level
+  tags           CourseTag[]
+  thumbnial      CourseThumbnail?
+  reviews        Review[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+model CourseThumbnail {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  public_id String?
+  url       String
+  courseId  String   @unique @db.ObjectId
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Level {
+  Beginner
+  Intermediate
+  Advanced
+}
+
+model CourseTag {
+  id       String @id @default(auto()) @map("_id") @db.ObjectId
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String @db.ObjectId
+  tag      Tag    @relation(fields: [tagId], references: [id])
+  tagId    String @db.ObjectId
+}
+
+model CourseSection {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  description String
+  suggestion  String?
+  questions   Comment[]
+  links       Link[]
+  video       Video?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Review {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  rating    Int      @default(1)
+  text      String
+  course    Course   @relation(fields: [courseId], references: [id])
+  courseId  String   @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
