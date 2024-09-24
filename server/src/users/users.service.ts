@@ -287,9 +287,13 @@ export class UsersService {
       });
 
       // upload new avatar to cloudinary
-      const { publicId, url } = await this.cloudinaryService.uploadUserAvatar({
+      const { publicId, url } = await this.cloudinaryService.uploadMedia({
         publicId: avatar ? avatar.public_id : undefined,
-        avatar: avatarDto.avatar,
+        plainMedia: avatarDto.avatar,
+        options: {
+          folder: 'avatars',
+          width: 300,
+        },
       });
 
       // update the user avatar

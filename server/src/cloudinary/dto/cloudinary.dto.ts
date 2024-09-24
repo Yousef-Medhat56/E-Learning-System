@@ -1,11 +1,15 @@
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { UploadApiOptions } from 'cloudinary';
 
-export class UploadUserAvatarDto {
+export class UploadMediaDto {
   @IsNotEmpty()
   @IsString()
-  avatar: string;
+  plainMedia: string;
 
   @IsOptional()
   @IsString()
-  publicId: string;
+  publicId?: string;
+
+  @IsOptional()
+  options?: UploadApiOptions;
 }

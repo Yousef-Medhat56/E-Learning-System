@@ -1,23 +1,20 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UploadUserAvatarDto } from './dto/cloudinary.dto';
+import { UploadMediaDto } from './dto/cloudinary.dto';
 import { v2 } from 'cloudinary';
 
 @Injectable()
 export class CloudinaryService {
-  async uploadUserAvatar(uploadAvatarDto: UploadUserAvatarDto) {
+  async uploadMedia(uploadMediaDto: UploadMediaDto) {
     try {
-      const { publicId, avatar } = uploadAvatarDto;
+      const { publicId, plainMedia, options } = uploadMediaDto;
 
-      // delete the old avatar
+      // delete the old media if exists
       if (publicId) {
         await v2.uploader.destroy(publicId);
       }
 
-      // upload the new avatar
-      const cloudinaryResponse = await v2.uploader.upload(avatar, {
-        folder: 'avatars',
-        width: 300,
-      });
+      // upload the new media
+      const cloudinaryResponse = await v2.uploader.upload(plainMedia, options);
 
       return {
         publicId: cloudinaryResponse.public_id,
