@@ -2,8 +2,9 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { CreateCourseDto } from './dto/courses.dto';
+import { CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'nestjs-prisma';
@@ -31,7 +32,7 @@ export class CoursesService {
     private cloudinaryService: CloudinaryService,
   ) {}
 
-  async create(createCourseDto: CreateCourseDto) {
+  async create(createCourseDto: CreateOrUpdateCourseDto) {
     const {
       title,
       description,
@@ -137,6 +138,125 @@ export class CoursesService {
     } catch (error) {
       if (error.status === 409) {
         throw new ConflictException('Course already exists');
+      }
+      throw new BadRequestException();
+    }
+  }
+  async update(id: string, updateCourseDto: CreateOrUpdateCourseDto) {
+    const {
+      title,
+      description,
+      price,
+      estimatedPrice,
+      demoUrl,
+      level,
+      thumbnail,
+      sections,
+      benefits,
+      prerequisites,
+    } = updateCourseDto;
+
+    try {
+      //get course data
+      const courseData = await this.prisma.course.findUnique({
+        where: { id },
+        include: { thumbnail: true },
+      });
+      // check if course doesn't exist
+      if (!courseData) throw new NotFoundException();
+
+      // upload course thumbnail to cloudinary
+      const { publicId, url } = await this.cloudinaryService.uploadMedia({
+        publicId: courseData.thumbnail.public_id,
+        plainMedia: thumbnail,
+        options: {
+          folder: 'courses',
+        },
+      });
+
+      const updatedCourse = await this.prisma.course.update({
+        where: { id },
+        data: {
+          title: title || courseData.title,
+          description: description || courseData.description,
+          price: price ?? courseData.price,
+          estimatedPrice: estimatedPrice !== undefined ? estimatedPrice : null,
+          demoUrl: demoUrl || courseData.demoUrl,
+          level: level || courseData.level,
+          thumbnail: {
+            update: {
+              public_id: publicId,
+              url,
+            },
+          },
+          sections: sections
+            ? {
+                deleteMany: {}, // Remove old sections if new ones are provided
+                create: sections.map((section: any) => ({
+                  title: section.title,
+                  description: section.description,
+                  suggestion: section.suggestion,
+                  links: {
+                    create: section.links.map((link: any) => ({
+                      text: link.text,
+                      url: link.url,
+                    })),
+                  },
+                  video: section.video
+                    ? {
+                        create: {
+                          url: section.video.url,
+                          description: section.video.description,
+                          player: section.video.player,
+                          duration: section.video.duration,
+                          thumbnail: {
+                            create: {
+                              url: section.video.thumbnail.url,
+                              public_id: section.video.thumbnail.public_id,
+                            },
+                          },
+                        },
+                      }
+                    : undefined,
+                })),
+              }
+            : undefined,
+          benefits: benefits
+            ? {
+                deleteMany: {}, // Remove old benefits
+                create: benefits.map((benefit: any) => ({
+                  text: benefit.text,
+                })),
+              }
+            : undefined,
+          prerequisites: prerequisites
+            ? {
+                deleteMany: {}, // Remove old prerequisites
+                create: prerequisites.map((prerequisite: any) => ({
+                  text: prerequisite.text,
+                })),
+              }
+            : undefined,
+        },
+        include: {
+          sections: {
+            include: {
+              links: true,
+              video: { include: { thumbnail: true } },
+            },
+          },
+          benefits: true,
+          prerequisites: true,
+          thumbnail: true,
+        },
+      });
+
+      // store course in cache
+      this.redisService.set(id, JSON.stringify(updatedCourse));
+      return updatedCourse;
+    } catch (error) {
+      if (error.status === 404) {
+        throw new NotFoundException("Course doesn't exist");
       }
       throw new BadRequestException();
     }

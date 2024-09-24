@@ -65,7 +65,7 @@ export class LinkDto {
   url: string;
 }
 
-export class CreateCourseDto {
+export class CreateOrUpdateCourseDto {
   @IsNotEmpty()
   title: string;
 
