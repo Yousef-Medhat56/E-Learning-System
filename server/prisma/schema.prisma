@@ -44,26 +44,15 @@ enum Role {
 }
 
 model Video {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  url             String?
-  description     String?
-  player          String?
+  id              String        @id @default(auto()) @map("_id") @db.ObjectId
+  url             String
+  description     String
+  player          String
   duration        Int?
-  thumbnail       VideoThumbnail?
-  courseSection   CourseSection   @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
-  courseSectionId String          @unique @db.ObjectId
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-}
-
-model VideoThumbnail {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  public_id String?
-  url       String
-  videoId   String   @unique @db.ObjectId
-  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  courseSection   CourseSection @relation(fields: [courseSectionId], references: [id], onDelete: Cascade)
+  courseSectionId String        @unique @db.ObjectId
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model Tag {
@@ -96,16 +85,17 @@ model Comment {
 
 model Course {
   id             String               @id @default(auto()) @map("_id") @db.ObjectId
-  title          String
+  title          String               @unique
   description    String
   price          Int
   estimatedPrice Int?
   demoUrl        String?
   level          Level
   tags           CourseTag[]
-  thumbnial      CourseThumbnail?
+  thumbnail      CourseThumbnail?
+  sections       CourseSection[]
   benefits       CourseBenefit[]
-  prerequisites   CoursePrerequisite[]
+  prerequisites  CoursePrerequisite[]
   reviews        Review[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
@@ -140,7 +130,9 @@ model CourseSection {
   title       String
   description String
   suggestion  String?
-  questions   Comment[]
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String    @db.ObjectId
+  comments    Comment[]
   links       Link[]
   video       Video?
   createdAt   DateTime  @default(now())
@@ -162,13 +154,13 @@ model Review {
 model CourseBenefit {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   text     String
-  course   Course @relation(fields: [courseId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId String @db.ObjectId
 }
 
 model CoursePrerequisite {
   id       String @id @default(auto()) @map("_id") @db.ObjectId
   text     String
-  course   Course @relation(fields: [courseId], references: [id])
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId String @db.ObjectId
 }
