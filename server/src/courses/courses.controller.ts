@@ -12,7 +12,9 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { CoursesService } from './courses.service';
 import { CreateOrUpdateCourseDto } from './dto/courses.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Courses')
 @Controller('courses')
 export class CoursesController {
   constructor(private readonly coursesService: CoursesService) {}
