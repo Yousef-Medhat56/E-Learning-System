@@ -111,7 +111,6 @@ export class CreateOrUpdateCourseDto {
   level: Level;
 
   @ApiProperty()
-  @IsNotEmpty()
   thumbnail: string;
 
   @ApiProperty({ type: CourseSectionDto })

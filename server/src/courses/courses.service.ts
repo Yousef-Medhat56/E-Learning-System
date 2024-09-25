@@ -47,6 +47,9 @@ export class CoursesService {
     } = createCourseDto;
 
     try {
+      //check if thumbnail is not provided
+      if (!thumbnail) throw new BadRequestException('thumnail is required');
+
       //check if the course exists already
       const isCourseExist = await this.prisma.course.findUnique({
         where: { title },
@@ -165,14 +168,20 @@ export class CoursesService {
       // check if course doesn't exist
       if (!courseData) throw new NotFoundException();
 
-      // upload course thumbnail to cloudinary
-      const { publicId, url } = await this.cloudinaryService.uploadMedia({
-        publicId: courseData.thumbnail.public_id,
-        plainMedia: thumbnail,
-        options: {
-          folder: 'courses',
-        },
-      });
+      const thumbnailData = { publicId: '', url: '' };
+      //check if a new thumbnail is updated
+      if (thumbnail) {
+        // upload course thumbnail to cloudinary
+        const { publicId, url } = await this.cloudinaryService.uploadMedia({
+          publicId: courseData.thumbnail.public_id,
+          plainMedia: thumbnail,
+          options: {
+            folder: 'courses',
+          },
+        });
+        thumbnailData.publicId = publicId;
+        thumbnailData.url = url;
+      }
 
       const updatedCourse = await this.prisma.course.update({
         where: { id },
@@ -185,8 +194,9 @@ export class CoursesService {
           level: level || courseData.level,
           thumbnail: {
             update: {
-              public_id: publicId,
-              url,
+              public_id:
+                thumbnailData.publicId || courseData.thumbnail.public_id,
+              url: thumbnailData.url || courseData.thumbnail.url,
             },
           },
           sections: sections
