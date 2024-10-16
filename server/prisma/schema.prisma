@@ -15,17 +15,19 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  email      String      @unique
-  name       String
-  password   String?
-  role       Role        @default(USER)
-  isVerified Boolean     @default(false)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  avatar     UserAvatar?
-  comments   Comment[]
-  reviews    Review[]
+  id                  String      @id @default(auto()) @map("_id") @db.ObjectId
+  email               String      @unique
+  name                String
+  password            String?
+  role                Role        @default(USER)
+  isVerified          Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  avatar              UserAvatar?
+  comments            Comment[]
+  reviews             Review[]
+  purchasedCourses    Course[]    @relation(fields: [purchasedCoursesIDs], references: [id])
+  purchasedCoursesIDs String[]    @db.ObjectId
 }
 
 model UserAvatar {
@@ -97,6 +99,8 @@ model Course {
   benefits       CourseBenefit[]
   prerequisites  CoursePrerequisite[]
   reviews        Review[]
+  customers      User[]               @relation(fields: [customersIDs], references: [id])
+  customersIDs   String[]             @db.ObjectId
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
 }
