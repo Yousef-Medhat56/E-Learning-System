@@ -261,27 +261,4 @@ export class CoursesService {
       throw new BadRequestException('Could not fetch courses');
     }
   }
-
-  // access section content --purshasing required
-  async getSectionContent(courseId: string, sectionId: string) {
-    try {
-      // get section data
-      const sectionData = await this.prisma.courseSection.findUnique({
-        where: {
-          id: sectionId,
-          courseId,
-        },
-        include: {
-          video: true,
-          comments: true,
-          links: true,
-        },
-      });
-      if (!sectionData) throw new NotFoundException('Course section not found');
-
-      return sectionData;
-    } catch (error) {
-      throw error;
-    }
-  }
 }

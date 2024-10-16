@@ -15,11 +15,15 @@ import { CoursesService } from './courses.service';
 import { CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CourseGuard } from 'src/auth/guards/course.guard';
+import { SectionsService } from './sections/sections.service';
 
 @ApiTags('Courses')
 @Controller('courses')
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(
+    private readonly coursesService: CoursesService,
+    private readonly sectionsService: SectionsService,
+  ) {}
 
   @Post()
   @UseGuards(AuthGuard, RoleGuard)
@@ -50,13 +54,13 @@ export class CoursesController {
   }
   @Get(':courseId/sections/:sectionId')
   @UseGuards(AuthGuard, CourseGuard)
-  async getSectionContent(
+  async getSection(
     @Param() { courseId, sectionId }: { courseId: string; sectionId: string },
   ) {
-    const courseContent = await this.coursesService.getSectionContent(
+    const sectionContent = await this.sectionsService.getContent(
       courseId,
       sectionId,
     );
-    return courseContent;
+    return sectionContent;
   }
 }
