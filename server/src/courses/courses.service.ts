@@ -3,6 +3,7 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
@@ -221,13 +222,13 @@ export class CoursesService {
       await this.cacheCourse(id, updatedCourse);
       return updatedCourse;
     } catch (error) {
-      console.log(error);
       throw error instanceof NotFoundException
         ? error
         : new BadRequestException();
     }
   }
 
+  // get single course --without purchasing
   async findOne(id: string) {
     try {
       const cachedCourse = await this.redisService.get(id);
@@ -245,6 +246,7 @@ export class CoursesService {
     }
   }
 
+  // get all courses --without purchasing
   async findAll() {
     try {
       const cachedCourses = await this.redisService.get('allCourses');
@@ -258,6 +260,41 @@ export class CoursesService {
       return courses;
     } catch (error) {
       throw new BadRequestException('Could not fetch courses');
+    }
+  }
+
+  // access section content --purshasing required
+  async getSectionContent(courseId: string, sectionId: string, userId: string) {
+    try {
+      const userData = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+
+      // check if the user purchased thic course
+      const isCoursePurchased = userData.purchasedCoursesIDs.includes(courseId);
+
+      if (!isCoursePurchased) {
+        throw new UnauthorizedException('You cannat access this content');
+      }
+      // get section data
+      const sectionData = await this.prisma.courseSection.findUnique({
+        where: {
+          id: sectionId,
+          courseId,
+        },
+        include: {
+          video: true,
+          comments: true,
+          links: true,
+        },
+      });
+      if (!sectionData) throw new NotFoundException('Course section not found');
+
+      return sectionData;
+    } catch (error) {
+      throw error;
     }
   }
 }

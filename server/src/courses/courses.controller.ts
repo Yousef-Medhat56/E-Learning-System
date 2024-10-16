@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
@@ -14,6 +15,7 @@ import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { CoursesService } from './courses.service';
 import { CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { AuthRequest } from 'src/auth/interfaces/auth.interface';
 
 @ApiTags('Courses')
 @Controller('courses')
@@ -43,8 +45,22 @@ export class CoursesController {
     return course;
   }
   @Get()
-  async find() {
+  async findAll() {
     const courses = await this.coursesService.findAll();
     return courses;
+  }
+  @Get(':courseId/sections/:sectionId')
+  @UseGuards(AuthGuard)
+  async getSectionContent(
+    @Param() { courseId, sectionId }: { courseId: string; sectionId: string },
+    @Req() req: AuthRequest,
+  ) {
+    const userId = req.user.id;
+    const courseContent = await this.coursesService.getSectionContent(
+      courseId,
+      sectionId,
+      userId,
+    );
+    return courseContent;
   }
 }
