@@ -3,7 +3,6 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
@@ -264,20 +263,8 @@ export class CoursesService {
   }
 
   // access section content --purshasing required
-  async getSectionContent(courseId: string, sectionId: string, userId: string) {
+  async getSectionContent(courseId: string, sectionId: string) {
     try {
-      const userData = await this.prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-      });
-
-      // check if the user purchased thic course
-      const isCoursePurchased = userData.purchasedCoursesIDs.includes(courseId);
-
-      if (!isCoursePurchased) {
-        throw new UnauthorizedException('You cannat access this content');
-      }
       // get section data
       const sectionData = await this.prisma.courseSection.findUnique({
         where: {
