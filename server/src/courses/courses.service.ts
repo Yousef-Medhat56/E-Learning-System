@@ -11,27 +11,97 @@ import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class CoursesService {
-  private prisma: PrismaService = new PrismaService({
-    prismaOptions: {
-      omit: {
-        courseBenefit: {
-          id: true,
-          courseId: true,
-        },
-        coursePrerequisite: {
-          id: true,
-          courseId: true,
-        },
-        link: { id: true, courseSectionId: true },
-      },
-    },
-  });
-
   constructor(
-    private redisService: UpstashRedisService,
-    private cloudinaryService: CloudinaryService,
-  ) {}
+    private readonly redisService: UpstashRedisService,
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly prisma: PrismaService,
+  ) {
+    this.prisma = new PrismaService({
+      prismaOptions: {
+        omit: {
+          courseBenefit: {
+            id: true,
+            courseId: true,
+          },
+          coursePrerequisite: {
+            id: true,
+            courseId: true,
+          },
+          link: { id: true, courseSectionId: true },
+        },
+      },
+    });
+  }
+  private async uploadThumbnail(
+    thumbnail: string | undefined,
+    existingThumbnail?: { public_id: string },
+  ) {
+    if (!thumbnail) {
+      throw new BadRequestException('Thumbnail is required');
+    }
 
+    const { publicId, url } = await this.cloudinaryService.uploadMedia({
+      publicId: existingThumbnail?.public_id,
+      plainMedia: thumbnail,
+      options: { folder: 'courses' },
+    });
+
+    return { public_id: publicId, url };
+  }
+
+  private mapSections(sections: any[]) {
+    return sections.map((section) => ({
+      title: section.title,
+      description: section.description,
+      suggestion: section.suggestion,
+      links: {
+        create: section.links.map((link: any) => ({
+          text: link.text,
+          url: link.url,
+        })),
+      },
+      video: section.video
+        ? {
+            create: {
+              url: section.video.url,
+              description: section.video.description,
+              player: section.video.player,
+              duration: section.video.duration,
+              thumbnail: {
+                create: {
+                  url: section.video.thumbnail.url,
+                  public_id: section.video.thumbnail.public_id,
+                },
+              },
+            },
+          }
+        : undefined,
+    }));
+  }
+
+  private mapBenefitsOrPrerequisites(items: any[]) {
+    return items.map((item) => ({ text: item.text }));
+  }
+
+  private async cacheCourse(courseId: string, courseData: any) {
+    await this.redisService.set(courseId, JSON.stringify(courseData));
+    await this.redisService.del('allCourses');
+  }
+  private courseIncludeOptions() {
+    return {
+      sections: {
+        include: {
+          video: { omit: { url: true } },
+        },
+        omit: { suggestion: true },
+      },
+      reviews: true,
+      tags: true,
+      benefits: true,
+      thumbnail: true,
+      prerequisites: true,
+    };
+  }
   async create(createCourseDto: CreateOrUpdateCourseDto) {
     const {
       title,
@@ -47,104 +117,42 @@ export class CoursesService {
     } = createCourseDto;
 
     try {
-      //check if thumbnail is not provided
-      if (!thumbnail) throw new BadRequestException('thumnail is required');
-
-      //check if the course exists already
-      const isCourseExist = await this.prisma.course.findUnique({
+      // Check if course already exists
+      const courseExists = await this.prisma.course.findUnique({
         where: { title },
       });
-      if (isCourseExist) throw new ConflictException({ code: 'P2002' });
+      if (courseExists) throw new ConflictException('Course already exists');
 
-      // upload course thumbnail to cloudinary
-      const { publicId, url } = await this.cloudinaryService.uploadMedia({
-        publicId: undefined,
-        plainMedia: thumbnail,
-        options: {
-          folder: 'courses',
-        },
-      });
+      // Upload thumbnail
+      const thumbnailData = await this.uploadThumbnail(thumbnail);
 
       const newCourse = await this.prisma.course.create({
         data: {
-          title: title,
-          description: description,
-          price: price,
-          estimatedPrice: estimatedPrice,
-          demoUrl: demoUrl,
-          level: level,
-          thumbnail: {
-            create: {
-              url: url,
-              public_id: publicId,
-            },
-          },
-          sections: {
-            create: sections.map((section: any) => ({
-              title: section.title,
-              description: section.description,
-              suggestion: section.suggestion,
-              links: {
-                create: section.links.map((link: any) => ({
-                  text: link.text,
-                  url: link.url,
-                })),
-              },
-              video: section.video
-                ? {
-                    create: {
-                      url: section.video.url,
-                      description: section.video.description,
-                      player: section.video.player,
-                      duration: section.video.duration,
-                      thumbnail: {
-                        create: {
-                          url: section.video.thumbnail.url,
-                          public_id: section.video.thumbnail.public_id,
-                        },
-                      },
-                    },
-                  }
-                : undefined,
-            })),
-          },
-          benefits: {
-            create: benefits.map((benefit: any) => ({
-              text: benefit.text,
-            })),
-          },
+          title,
+          description,
+          price,
+          estimatedPrice,
+          demoUrl,
+          level,
+          thumbnail: { create: thumbnailData },
+          sections: { create: this.mapSections(sections) },
+          benefits: { create: this.mapBenefitsOrPrerequisites(benefits) },
           prerequisites: {
-            create: prerequisites.map((prerequisite: any) => ({
-              text: prerequisite.text,
-            })),
+            create: this.mapBenefitsOrPrerequisites(prerequisites),
           },
         },
-        include: {
-          sections: {
-            include: {
-              links: true,
-              video: {
-                include: {
-                  thumbnail: true,
-                },
-              },
-            },
-          },
-          benefits: true,
-          prerequisites: true,
-          thumbnail: true,
-        },
+        include: this.courseIncludeOptions(),
       });
-      // store course in cache
-      this.redisService.set(newCourse.id, JSON.stringify(newCourse));
+
+      await this.cacheCourse(newCourse.id, newCourse);
       return newCourse;
     } catch (error) {
-      if (error.status === 409) {
-        throw new ConflictException('Course already exists');
-      }
-      throw new BadRequestException();
+      throw error instanceof ConflictException
+        ? error
+        : new BadRequestException();
     }
   }
+
   async update(id: string, updateCourseDto: CreateOrUpdateCourseDto) {
     const {
       title,
@@ -160,27 +168,20 @@ export class CoursesService {
     } = updateCourseDto;
 
     try {
-      //get course data
       const courseData = await this.prisma.course.findUnique({
         where: { id },
         include: { thumbnail: true },
       });
-      // check if course doesn't exist
-      if (!courseData) throw new NotFoundException();
+      if (!courseData) throw new NotFoundException('Course not found');
 
-      const thumbnailData = { publicId: '', url: '' };
-      //check if a new thumbnail is updated
+      const thumbnailData = courseData.thumbnail;
       if (thumbnail) {
-        // upload course thumbnail to cloudinary
-        const { publicId, url } = await this.cloudinaryService.uploadMedia({
-          publicId: courseData.thumbnail.public_id,
-          plainMedia: thumbnail,
-          options: {
-            folder: 'courses',
-          },
-        });
-        thumbnailData.publicId = publicId;
+        const { url, public_id } = await this.uploadThumbnail(
+          thumbnail,
+          courseData.thumbnail,
+        );
         thumbnailData.url = url;
+        thumbnailData.public_id = public_id;
       }
 
       const updatedCourse = await this.prisma.course.update({
@@ -194,110 +195,69 @@ export class CoursesService {
           level: level || courseData.level,
           thumbnail: {
             update: {
-              public_id:
-                thumbnailData.publicId || courseData.thumbnail.public_id,
-              url: thumbnailData.url || courseData.thumbnail.url,
+              public_id: thumbnailData.public_id,
+              url: thumbnailData.url,
             },
           },
           sections: sections
-            ? {
-                deleteMany: {}, // Remove old sections if new ones are provided
-                create: sections.map((section: any) => ({
-                  title: section.title,
-                  description: section.description,
-                  suggestion: section.suggestion,
-                  links: {
-                    create: section.links.map((link: any) => ({
-                      text: link.text,
-                      url: link.url,
-                    })),
-                  },
-                  video: section.video
-                    ? {
-                        create: {
-                          url: section.video.url,
-                          description: section.video.description,
-                          player: section.video.player,
-                          duration: section.video.duration,
-                          thumbnail: {
-                            create: {
-                              url: section.video.thumbnail.url,
-                              public_id: section.video.thumbnail.public_id,
-                            },
-                          },
-                        },
-                      }
-                    : undefined,
-                })),
-              }
+            ? { deleteMany: {}, create: this.mapSections(sections) }
             : undefined,
           benefits: benefits
             ? {
-                deleteMany: {}, // Remove old benefits
-                create: benefits.map((benefit: any) => ({
-                  text: benefit.text,
-                })),
+                deleteMany: {},
+                create: this.mapBenefitsOrPrerequisites(benefits),
               }
             : undefined,
           prerequisites: prerequisites
             ? {
-                deleteMany: {}, // Remove old prerequisites
-                create: prerequisites.map((prerequisite: any) => ({
-                  text: prerequisite.text,
-                })),
+                deleteMany: {},
+                create: this.mapBenefitsOrPrerequisites(prerequisites),
               }
             : undefined,
         },
-        include: {
-          sections: {
-            include: {
-              links: true,
-              video: { include: { thumbnail: true } },
-            },
-          },
-          benefits: true,
-          prerequisites: true,
-          thumbnail: true,
-        },
+        include: this.courseIncludeOptions(),
       });
 
-      // store course in cache
-      this.redisService.set(id, JSON.stringify(updatedCourse));
+      await this.cacheCourse(id, updatedCourse);
       return updatedCourse;
     } catch (error) {
-      if (error.status === 404) {
-        throw new NotFoundException("Course doesn't exist");
-      }
-      throw new BadRequestException();
+      console.log(error);
+      throw error instanceof NotFoundException
+        ? error
+        : new BadRequestException();
     }
   }
-  //get single course --without purchasing
+
   async findOne(id: string) {
     try {
+      const cachedCourse = await this.redisService.get(id);
+      if (cachedCourse) return cachedCourse;
+
       const course = await this.prisma.course.findUnique({
         where: { id },
-        include: {
-          sections: {
-            include: {
-              video: {
-                omit: { url: true },
-              },
-            },
-            omit: {
-              suggestion: true,
-            },
-          },
-          reviews: true,
-          tags: true,
-          benefits: true,
-          thumbnail: true,
-          prerequisites: true,
-        },
+        include: this.courseIncludeOptions(),
       });
 
+      await this.cacheCourse(id, course);
       return course;
     } catch (error) {
-      throw new NotFoundException("Course doesn't exist");
+      throw new NotFoundException('Course not found');
+    }
+  }
+
+  async findAll() {
+    try {
+      const cachedCourses = await this.redisService.get('allCourses');
+      if (cachedCourses) return cachedCourses;
+
+      const courses = await this.prisma.course.findMany({
+        include: this.courseIncludeOptions(),
+      });
+
+      await this.redisService.set('allCourses', JSON.stringify(courses));
+      return courses;
+    } catch (error) {
+      throw new BadRequestException('Could not fetch courses');
     }
   }
 }

@@ -42,4 +42,9 @@ export class CoursesController {
     const course = await this.coursesService.findOne(id);
     return course;
   }
+  @Get()
+  async find() {
+    const courses = await this.coursesService.findAll();
+    return courses;
+  }
 }
