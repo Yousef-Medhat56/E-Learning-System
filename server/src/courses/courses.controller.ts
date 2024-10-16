@@ -19,6 +19,7 @@ import { CourseGuard } from 'src/auth/guards/course.guard';
 import { SectionsService } from './sections/sections.service';
 import { AuthRequest } from 'src/auth/interfaces/auth.interface';
 import { addCommentDto } from './sections/dto/sections.dto';
+import { CourseSectionGuard } from 'src/auth/guards/courseSection.guard';
 
 @ApiTags('Courses')
 @Controller('courses')
@@ -56,13 +57,13 @@ export class CoursesController {
     return courses;
   }
   @Get(':courseId/sections/:sectionId')
-  @UseGuards(AuthGuard, CourseGuard)
+  @UseGuards(AuthGuard, CourseGuard, CourseSectionGuard)
   async getSection(@Param() { sectionId }: { sectionId: string }) {
     const sectionContent = await this.sectionsService.getContent(sectionId);
     return sectionContent;
   }
   @Post(':courseId/sections/:sectionId/comments')
-  @UseGuards(AuthGuard, CourseGuard)
+  @UseGuards(AuthGuard, CourseGuard, CourseSectionGuard)
   async addComment(
     @Param() { sectionId }: { sectionId: string },
     @Body() comment: addCommentDto,
