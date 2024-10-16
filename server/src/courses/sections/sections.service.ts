@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { addCommentDto } from './dto/sections.dto';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class SectionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async getContent(sectionId: string) {
     try {
@@ -53,7 +57,35 @@ export class SectionsService {
           text,
           parentId,
         },
+        include: {
+          courseSection: {
+            select: {
+              title: true,
+            },
+          },
+          parent: {
+            include: {
+              user: {
+                select: { email: true, name: true },
+              },
+            },
+          },
+        },
       });
+
+      if (parentId) {
+        //TODO: SEND NOTIFICATION TO THE ADMIN DASHBOARD
+        // send activation email
+        this.emailService.sendEmail({
+          emailTo: newComment.parent.user.email,
+          subject: 'E-Learning | New reply',
+          template: 'comment-reply.ejs',
+          data: {
+            userName: newComment.parent.user.name,
+            sectionTitle: newComment.courseSection.title,
+          },
+        });
+      }
       return newComment;
     } catch (error) {
       throw new BadRequestException(error);
