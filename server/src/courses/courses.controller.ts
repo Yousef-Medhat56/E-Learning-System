@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Patch,
   Post,
@@ -34,6 +35,11 @@ export class CoursesController {
     @Body() updateCourseDto: CreateOrUpdateCourseDto,
   ) {
     const course = await this.coursesService.update(id, updateCourseDto);
+    return course;
+  }
+  @Get(':id')
+  async findOne(@Param() { id }: { id: string }) {
+    const course = await this.coursesService.findOne(id);
     return course;
   }
 }

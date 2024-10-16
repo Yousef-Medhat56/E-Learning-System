@@ -271,4 +271,33 @@ export class CoursesService {
       throw new BadRequestException();
     }
   }
+  //get single course --without purchasing
+  async findOne(id: string) {
+    try {
+      const course = await this.prisma.course.findUnique({
+        where: { id },
+        include: {
+          sections: {
+            include: {
+              video: {
+                omit: { url: true },
+              },
+            },
+            omit: {
+              suggestion: true,
+            },
+          },
+          reviews: true,
+          tags: true,
+          benefits: true,
+          thumbnail: true,
+          prerequisites: true,
+        },
+      });
+
+      return course;
+    } catch (error) {
+      throw new NotFoundException("Course doesn't exist");
+    }
+  }
 }
