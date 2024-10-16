@@ -8,6 +8,9 @@ import {
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  IsString,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
 
@@ -133,4 +136,18 @@ export class CreateOrUpdateCourseDto {
   prerequisites: CoursePrerequisiteDto[];
 
   //TODO: ADD TAGS
+}
+
+export class AddReviewDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(0)
+  @Max(5)
+  rating: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  text: string;
 }

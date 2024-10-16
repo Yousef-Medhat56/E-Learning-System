@@ -13,7 +13,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { CoursesService } from './courses.service';
-import { CreateOrUpdateCourseDto } from './dto/courses.dto';
+import { AddReviewDto, CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CourseGuard } from 'src/auth/guards/course.guard';
 import { SectionsService } from './sections/sections.service';
@@ -70,11 +70,26 @@ export class CoursesController {
     @Req() req: AuthRequest,
   ) {
     const { id: userId } = req.user;
-    const sectionContent = await this.sectionsService.addComment(
+    const newComment = await this.sectionsService.addComment(
       sectionId,
       userId,
       comment,
     );
-    return sectionContent;
+    return newComment;
+  }
+  @Post(':courseId/reviews')
+  @UseGuards(AuthGuard, CourseGuard)
+  async addReview(
+    @Param() { courseId }: { courseId: string },
+    @Body() review: AddReviewDto,
+    @Req() req: AuthRequest,
+  ) {
+    const { id: userId } = req.user;
+    const newReview = await this.coursesService.addReview(
+      courseId,
+      userId,
+      review,
+    );
+    return newReview;
   }
 }

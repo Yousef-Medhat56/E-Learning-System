@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateOrUpdateCourseDto } from './dto/courses.dto';
+import { AddReviewDto, CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'nestjs-prisma';
@@ -259,6 +259,47 @@ export class CoursesService {
       return courses;
     } catch (error) {
       throw new BadRequestException('Could not fetch courses');
+    }
+  }
+
+  async addReview(courseId: string, userId: string, review: AddReviewDto) {
+    try {
+      const { text, rating } = review;
+      // check if the user already has old review for the course
+      const oldReview = await this.prisma.review.findFirst({
+        where: {
+          userId,
+          courseId,
+        },
+      });
+
+      const reviewData = {
+        courseId,
+        userId,
+        text,
+        rating,
+      };
+
+      if (oldReview) {
+        //update the old review
+        const updatedReview = await this.prisma.review.update({
+          where: {
+            id: oldReview.id,
+          },
+          data: reviewData,
+        });
+        //TODO: SEND NOTIFICATION TO ADMIN DASHBOARD
+        return updatedReview;
+      } else {
+        //create new review
+        const newReview = await this.prisma.review.create({
+          data: reviewData,
+        });
+        //TODO: SEND NOTIFICATION TO ADMIN DASHBOARD
+        return newReview;
+      }
+    } catch (error) {
+      throw new BadRequestException();
     }
   }
 }
