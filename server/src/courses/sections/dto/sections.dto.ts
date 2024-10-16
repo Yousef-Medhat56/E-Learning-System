@@ -2,10 +2,10 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class addCommentDto {
-  @ApiProperty()
+  @ApiProperty({ required: true })
   @IsNotEmpty()
   text: string;
-  @ApiProperty()
+  @ApiProperty({ required: false })
   @IsOptional()
   parentId?: string;
 }

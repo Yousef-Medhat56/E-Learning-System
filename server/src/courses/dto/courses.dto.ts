@@ -139,14 +139,14 @@ export class CreateOrUpdateCourseDto {
 }
 
 export class AddReviewDto {
-  @ApiProperty()
+  @ApiProperty({ required: true, minimum: 0, maximum: 5 })
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
   @Max(5)
   rating: number;
 
-  @ApiProperty()
+  @ApiProperty({ required: true })
   @IsNotEmpty()
   @IsString()
   text: string;
