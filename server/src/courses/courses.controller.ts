@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
@@ -16,6 +17,8 @@ import { CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { CourseGuard } from 'src/auth/guards/course.guard';
 import { SectionsService } from './sections/sections.service';
+import { AuthRequest } from 'src/auth/interfaces/auth.interface';
+import { addCommentDto } from './sections/dto/sections.dto';
 
 @ApiTags('Courses')
 @Controller('courses')
@@ -54,12 +57,22 @@ export class CoursesController {
   }
   @Get(':courseId/sections/:sectionId')
   @UseGuards(AuthGuard, CourseGuard)
-  async getSection(
-    @Param() { courseId, sectionId }: { courseId: string; sectionId: string },
+  async getSection(@Param() { sectionId }: { sectionId: string }) {
+    const sectionContent = await this.sectionsService.getContent(sectionId);
+    return sectionContent;
+  }
+  @Post(':courseId/sections/:sectionId/comments')
+  @UseGuards(AuthGuard, CourseGuard)
+  async addComment(
+    @Param() { sectionId }: { sectionId: string },
+    @Body() comment: addCommentDto,
+    @Req() req: AuthRequest,
   ) {
-    const sectionContent = await this.sectionsService.getContent(
-      courseId,
+    const { id: userId } = req.user;
+    const sectionContent = await this.sectionsService.addComment(
       sectionId,
+      userId,
+      comment,
     );
     return sectionContent;
   }
