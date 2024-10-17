@@ -13,6 +13,7 @@ import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CoursesModule } from './courses/courses.module';
 import { OrdersModule } from './orders/orders.module';
+import { NotificationsService } from './notifications/notifications.service';
 
 @Module({
   imports: [
@@ -49,6 +50,6 @@ import { OrdersModule } from './orders/orders.module';
     OrdersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, NotificationsService],
 })
 export class AppModule {}

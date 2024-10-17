@@ -6,11 +6,13 @@ import {
 import { CreateOrderDto } from './dto/orders.dto';
 import { CourseGuard } from 'src/auth/guards/course.guard';
 import { PrismaService } from 'nestjs-prisma';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
     private readonly courseGuard: CourseGuard,
   ) {}
   async create(userId: string, createOrderDto: CreateOrderDto) {
@@ -42,6 +44,19 @@ export class OrdersService {
           courseId,
           userId,
         },
+        include: {
+          course: {
+            select: {
+              title: true,
+            },
+          },
+        },
+      });
+
+      // send new order notification
+      this.notificationsService.newOrder({
+        userId,
+        courseName: newOrder.course.title,
       });
 
       return newOrder;
