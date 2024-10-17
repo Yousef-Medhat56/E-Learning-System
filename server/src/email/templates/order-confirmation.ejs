@@ -2,8 +2,9 @@
 <html>
   <head>
     <title>Order Confirmation</title>
-
-    <style>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style type="text/css">
       body {
         font-family: 'Poppins', sans-serif;
         background-color: #f4f4f4;
@@ -16,7 +17,7 @@
         margin: 0 auto;
         padding: 20px;
         background-color: #4f5ef1;
-        box-shadow: 0 4px 8px Orgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         color: #ffffff;
       }
       .message {
@@ -57,23 +58,24 @@
         border-bottom: none;
       }
 
-      .message-sm > h1 {
+      .message-sm {
         text-align: center;
+      }
+      .message-sm > h1 {
         font-size: 25px;
         font-weight: 600;
       }
-      .course-into {
+      .course-info {
         margin: auto;
         padding: 20px 0px;
-        width: 1084;
-        background-color: #fff;
+        background-color: #ffffff !important;
         border-radius: 10px;
         margin-bottom: 20px;
-        box-shadow: 2px 2px 2px 2px (206, 197, 197, 0.1);
-        color: #000;
+        box-shadow: 2px 2px 2px 2px rgba(206, 197, 197, 0.1);
+        color: #000000;
       }
       .course-info > h4 {
-        color: I#23bd70;
+        color: #23bd70;
         font-size: 22px;
         font-family: 'Poppins', sans-serif;
         font-weight: 500;
@@ -86,7 +88,7 @@
         margin-bottom: 10px;
       }
       .purchase-info {
-        font-size: I 16px;
+        font-size: 16px;
       }
       .first-td {
         text-transform: uppercase;
@@ -100,7 +102,7 @@
       }
       .second-td {
         font-weight: 500 !important;
-        color: D#000000af;
+        color: #000000af;
         font-size: 15px;
       }
 
@@ -138,7 +140,7 @@
     <div class="container">
       <div class="message-sm">
         <h1>Your E-Learning order is confirmed !</h1>
-        <p>And we're just as excited as you are .</p>
+        <p>And we're just as excited as you are.</p>
       </div>
       <div class="course-info">
         <h4>Here's what you ordered :</h4>
@@ -152,26 +154,25 @@
           <tr>
             <td class="first-td">Item</td>
             <td class="first-td">Qty</td>
-            <td class="first-td">cost</td>
+            <td class="first-td">Cost</td>
           </tr>
         </table>
         <table style="width: 90%; margin: auto; display: block">
           <tr>
-            <td class="second-td"><%=order.name %></td>
+            <td class="second-td"><%= order.name %></td>
             <td class="second-td">1</td>
-            <td class="second-td"><%=order.price %></td>
+            <td class="second-td"><%= order.price %>$</td>
           </tr>
         </table>
         <table class="table-row" style="border-top: 1px solid #00000029">
           <tr>
             <td class="col-2">Subtotal :</td>
-            <td class="col-2"><%= order.price %></td>
+            <td class="col-2"><%= order.price %>$</td>
           </tr>
         </table>
-        
       </div>
       <div class="footer">
-        <p>&copy; 2024 Elearning. All rights reserved .</p>
+        <p>&copy; 2024 Elearning. All rights reserved.</p>
       </div>
     </div>
   </body>
