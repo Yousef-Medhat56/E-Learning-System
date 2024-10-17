@@ -12,6 +12,7 @@ import { join } from 'path';
 import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CoursesModule } from './courses/courses.module';
+import { OrdersModule } from './orders/orders.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { CoursesModule } from './courses/courses.module';
     EmailModule,
     CloudinaryModule,
     CoursesModule,
+    OrdersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

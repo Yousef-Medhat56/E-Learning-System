@@ -19,39 +19,41 @@ export class CourseGuard implements CanActivate {
     return courseId;
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest() as AuthRequest;
-
-    // get user id
-    const { id } = request.user;
-
+  async isCoursePurchased(userId: string, courseId: string) {
     // user data
     const userData = await this.prisma.user.findUnique({
       where: {
-        id,
+        id: userId,
       },
       include: {
         orders: {
           select: {
-            coursesId: true,
+            courseId: true,
           },
         },
       },
     });
-
-    const courseId = this.getCourseId(request.url);
-
     // purchased courses list
     const purchasedCourses: string[] = [];
 
     userData.orders.map((order) => {
-      return purchasedCourses.push(order.coursesId);
+      return purchasedCourses.push(order.courseId);
     });
 
-    // check if the user purchased this course
-    const isCoursePurchased = purchasedCourses.includes(courseId);
+    return purchasedCourses.includes(courseId);
+  }
 
-    if (isCoursePurchased) {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest() as AuthRequest;
+
+    // get user id
+    const { id: userId } = request.user;
+
+    // get course id
+    const courseId = this.getCourseId(request.url);
+
+    // check if the user purchased the course
+    if (this.isCoursePurchased(userId, courseId)) {
       request['courseId'] = courseId;
       return true;
     }
