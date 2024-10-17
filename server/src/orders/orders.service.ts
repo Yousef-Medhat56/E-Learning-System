@@ -7,6 +7,7 @@ import { CreateOrderDto } from './dto/orders.dto';
 import { CourseGuard } from 'src/auth/guards/course.guard';
 import { PrismaService } from 'nestjs-prisma';
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class OrdersService {
@@ -14,6 +15,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
     private readonly courseGuard: CourseGuard,
+    private readonly emailService: EmailService,
   ) {}
   async create(userId: string, createOrderDto: CreateOrderDto) {
     try {
@@ -48,7 +50,32 @@ export class OrdersService {
           course: {
             select: {
               title: true,
+              price: true,
             },
+          },
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+
+      //send confirmation email to the user
+      this.emailService.sendEmail({
+        emailTo: newOrder.user.email,
+        template: 'order-confirmation.ejs',
+        subject: 'E-Learning | Order confirmation',
+        data: {
+          order: {
+            _id: newOrder.courseId.slice(0, 6),
+            name: newOrder.course.title,
+            price: newOrder.course.price,
+            date: new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
           },
         },
       });
