@@ -33,7 +33,7 @@ export class CourseGuard implements CanActivate {
       include: {
         orders: {
           select: {
-            coursesIDs: true,
+            coursesId: true,
           },
         },
       },
@@ -43,8 +43,9 @@ export class CourseGuard implements CanActivate {
 
     // purchased courses list
     const purchasedCourses: string[] = [];
+
     userData.orders.map((order) => {
-      return purchasedCourses.push(...order.coursesIDs);
+      return purchasedCourses.push(order.coursesId);
     });
 
     // check if the user purchased this course

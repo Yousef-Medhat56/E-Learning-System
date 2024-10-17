@@ -99,8 +99,7 @@ model Course {
   benefits       CourseBenefit[]
   prerequisites  CoursePrerequisite[]
   reviews        Review[]
-  orders         Order[]              @relation(fields: [orderIDs], references: [id])
-  orderIDs       String[]             @db.ObjectId
+  orders Order[]
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
 }
@@ -173,8 +172,9 @@ model Order {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   user       User     @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
-  courses    Course[] @relation(fields: [coursesIDs], references: [id])
-  coursesIDs String[] @db.ObjectId
+  course    Course @relation(fields: [coursesId], references: [id])
+  coursesId String @db.ObjectId
+  // TODO: ADD PAYMENT INFO
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
