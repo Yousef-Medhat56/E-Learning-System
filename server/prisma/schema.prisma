@@ -15,18 +15,19 @@ datasource db {
 }
 
 model User {
-  id         String      @id @default(auto()) @map("_id") @db.ObjectId
-  email      String      @unique
-  name       String
-  password   String?
-  role       Role        @default(USER)
-  isVerified Boolean     @default(false)
-  avatar     UserAvatar?
-  comments   Comment[]
-  reviews    Review[]
-  orders     Order[]
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  email         String         @unique
+  name          String
+  password      String?
+  role          Role           @default(USER)
+  isVerified    Boolean        @default(false)
+  avatar        UserAvatar?
+  comments      Comment[]
+  reviews       Review[]
+  orders        Order[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
 model UserAvatar {
@@ -98,10 +99,10 @@ model Course {
   benefits       CourseBenefit[]
   prerequisites  CoursePrerequisite[]
   reviews        Review[]
-  orders    Order[]  @relation(fields: [orderIDs], references: [id])
-  orderIDs  String[] @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  orders         Order[]              @relation(fields: [orderIDs], references: [id])
+  orderIDs       String[]             @db.ObjectId
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 }
 
 model CourseThumbnail {
@@ -172,8 +173,24 @@ model Order {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   user       User     @relation(fields: [userId], references: [id])
   userId     String   @db.ObjectId
-  courses     Course[] @relation(fields: [coursesIDs], references: [id])
+  courses    Course[] @relation(fields: [coursesIDs], references: [id])
   coursesIDs String[] @db.ObjectId
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model Notification {
+  id        String             @id @default(auto()) @map("_id") @db.ObjectId
+  user      User               @relation(fields: [userId], references: [id])
+  userId    String             @db.ObjectId
+  title     String
+  message   String
+  status    NotificationStatus @default(Delivered)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+enum NotificationStatus {
+  Delivered
+  Seen
 }
