@@ -30,12 +30,25 @@ export class CourseGuard implements CanActivate {
       where: {
         id,
       },
+      include: {
+        orders: {
+          select: {
+            coursesIDs: true,
+          },
+        },
+      },
     });
 
     const courseId = this.getCourseId(request.url);
 
+    // purchased courses list
+    const purchasedCourses: string[] = [];
+    userData.orders.map((order) => {
+      return purchasedCourses.push(...order.coursesIDs);
+    });
+
     // check if the user purchased this course
-    const isCoursePurchased = userData.purchasedCoursesIDs.includes(courseId);
+    const isCoursePurchased = purchasedCourses.includes(courseId);
 
     if (isCoursePurchased) {
       request['courseId'] = courseId;
