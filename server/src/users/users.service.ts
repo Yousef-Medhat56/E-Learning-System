@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import {
@@ -321,6 +322,15 @@ export class UsersService {
       return updatedUser;
     } catch (error) {
       throw new BadRequestException();
+    }
+  }
+
+  async findAllForAdmin() {
+    try {
+      const users = await this.prisma.user.findMany();
+      return { users };
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
   }
 }

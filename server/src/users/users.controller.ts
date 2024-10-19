@@ -28,6 +28,9 @@ import { Request, Response } from 'express';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { AuthRequest } from 'src/auth/interfaces/auth.interface';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RoleGuard } from 'src/auth/guards/roles.guard';
+import { Role } from '@prisma/client';
 
 @ApiTags('Users')
 @Controller('users')
@@ -307,5 +310,22 @@ export class UsersController {
     const { id } = req.user;
     const user = await this.usersService.updateAvatar(id, avatarDto);
     return user;
+  }
+
+  @Get('admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get all users --for admins',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async findAllForAdmin() {
+    const courses = await this.usersService.findAllForAdmin();
+    return courses;
   }
 }
