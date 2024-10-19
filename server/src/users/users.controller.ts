@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Patch,
   Post,
   Query,
@@ -348,5 +350,25 @@ export class UsersController {
   async findAllForAdmin(@Query('adminsOnly') adminsOnly: boolean) {
     const users = await this.usersService.findAllForAdmin(adminsOnly);
     return users;
+  }
+
+  // TODO: ADD DELETE /:id
+
+  @Delete(':id/admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Delete a user --for admins',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async deleteForAdmin(@Param() { id }: { id: string }) {
+    const deletedUser = await this.usersService.deleteForAdmin(id);
+    return deletedUser;
   }
 }

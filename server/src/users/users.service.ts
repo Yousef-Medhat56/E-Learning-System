@@ -361,4 +361,28 @@ export class UsersService {
       throw new InternalServerErrorException();
     }
   }
+
+  async deleteForAdmin(id: string) {
+    try {
+      const userExists = await this.prisma.user.findUnique({
+        where: {
+          id,
+        },
+      });
+      if (!userExists) {
+        throw new NotFoundException('User not found');
+      }
+
+      const deletedUser = await this.prisma.user.delete({
+        where: { id },
+      });
+
+      await this.redisService.del(id);
+
+      return deletedUser;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException();
+    }
+  }
 }
