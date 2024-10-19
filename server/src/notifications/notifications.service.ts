@@ -8,6 +8,7 @@ import {
   CourseNotificationDto,
   CreateNotificationDto,
 } from './dto/notifications.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class NotificationsService {
@@ -89,6 +90,25 @@ export class NotificationsService {
         userId,
         title: `New Review`,
         message: `You have a new review from ${courseName}`,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  // delete the last 30 days seen notifications
+  @Cron('0 0 0 * * *')
+  async deleteLast30DaysNotifications() {
+    try {
+      const MELLISECONDS_IN_MONTH = 30 * 24 * 60 * 60 * 1000;
+      const thirtyDaysAgo = new Date(Date.now() - MELLISECONDS_IN_MONTH);
+      await this.prisma.notification.deleteMany({
+        where: {
+          createdAt: {
+            lt: thirtyDaysAgo,
+          },
+          status: 'Seen',
+        },
       });
     } catch (error) {
       throw new InternalServerErrorException(error);

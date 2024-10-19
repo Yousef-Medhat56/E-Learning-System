@@ -15,6 +15,7 @@ import { CoursesModule } from './courses/courses.module';
 import { OrdersModule } from './orders/orders.module';
 import { NotificationsService } from './notifications/notifications.service';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     CoursesModule,
     OrdersModule,
     NotificationsModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService, NotificationsService],
