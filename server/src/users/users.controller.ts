@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Patch,
   Post,
   Req,
   Res,
@@ -16,6 +17,7 @@ import {
   SocialSignupUserDto,
   UpdatePasswordDto,
   UpdateUserInfoDto,
+  UpdateUserRoleDto,
 } from './dto/users.dto';
 import {
   ApiBearerAuth,
@@ -251,7 +253,7 @@ export class UsersController {
 
     return user;
   }
-  @Post('/update-info')
+  @Patch('/update-info')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
@@ -272,7 +274,7 @@ export class UsersController {
     return user;
   }
 
-  @Post('/update-password')
+  @Patch('/update-password')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
@@ -292,7 +294,7 @@ export class UsersController {
     return user;
   }
 
-  @Post('/update-avatar')
+  @Patch('/update-avatar')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
@@ -312,6 +314,24 @@ export class UsersController {
     return user;
   }
 
+  @Patch('/update-role')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Update user role --for admins',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateRole(@Body() updateUserRoleDto: UpdateUserRoleDto) {
+    const user = await this.usersService.updateRole(updateUserRoleDto);
+    return user;
+  }
+
   @Get('admin')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
@@ -325,7 +345,7 @@ export class UsersController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async findAllForAdmin() {
-    const courses = await this.usersService.findAllForAdmin();
-    return courses;
+    const users = await this.usersService.findAllForAdmin();
+    return users;
   }
 }

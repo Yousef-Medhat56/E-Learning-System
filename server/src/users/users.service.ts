@@ -14,6 +14,7 @@ import {
   SocialSignupUserDto,
   UpdatePasswordDto,
   UpdateUserInfoDto,
+  UpdateUserRoleDto,
 } from './dto/users.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { PrismaService } from 'nestjs-prisma';
@@ -330,6 +331,29 @@ export class UsersService {
       const users = await this.prisma.user.findMany();
       return { users };
     } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async updateRole({ userId, role }: UpdateUserRoleDto) {
+    try {
+      const userExists = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+      if (!userExists) {
+        throw new NotFoundException('User not found');
+      }
+
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: { role },
+      });
+
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       throw new InternalServerErrorException();
     }
   }

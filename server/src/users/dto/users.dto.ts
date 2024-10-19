@@ -25,11 +25,6 @@ export class CreateUserDto {
   @Length(6)
   password: string;
 
-  @ApiPropertyOptional({ enum: ['USER', 'ADMIN'] })
-  @IsOptional()
-  @IsIn(['USER', 'ADMIN'])
-  role?: Role;
-
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
@@ -98,4 +93,16 @@ export class AvatarDto {
   @IsNotEmpty()
   @IsString()
   avatar: string;
+}
+
+export class UpdateUserRoleDto {
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  userId: string;
+
+  @ApiPropertyOptional({ enum: ['USER', 'ADMIN'] })
+  @IsNotEmpty()
+  @IsIn(['USER', 'ADMIN'])
+  role: Role;
 }
