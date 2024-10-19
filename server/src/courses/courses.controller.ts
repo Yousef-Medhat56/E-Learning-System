@@ -45,8 +45,8 @@ export class CoursesController {
     status: 201,
     description: 'Course created successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unautharized' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unautharized' })
   async create(@Body() createCourseDto: CreateOrUpdateCourseDto) {
     const course = await this.coursesService.create(createCourseDto);
     return course;
@@ -62,8 +62,8 @@ export class CoursesController {
     status: 201,
     description: 'Course updated successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unautharized' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 401, description: 'Unautharized' })
   async update(
     @Param() { id }: { id: string },
     @Body() updateCourseDto: CreateOrUpdateCourseDto,
