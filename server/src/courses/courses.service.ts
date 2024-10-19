@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { AddReviewDto, CreateOrUpdateCourseDto } from './dto/courses.dto';
@@ -251,16 +252,26 @@ export class CoursesService {
   async findAll() {
     try {
       const cachedCourses = await this.redisService.get('allCourses');
-      if (cachedCourses) return cachedCourses;
+      if (cachedCourses) return { courses: cachedCourses };
 
       const courses = await this.prisma.course.findMany({
         include: this.courseIncludeOptions(),
       });
 
       await this.redisService.set('allCourses', JSON.stringify(courses));
-      return courses;
+      return { courses };
     } catch (error) {
       throw new BadRequestException('Could not fetch courses');
+    }
+  }
+
+  //get all courses details for admins
+  async findAllForAdmin() {
+    try {
+      const courses = await this.prisma.course.findMany();
+      return { courses };
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
   }
 

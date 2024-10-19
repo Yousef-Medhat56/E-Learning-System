@@ -51,6 +51,7 @@ export class CoursesController {
     const course = await this.coursesService.create(createCourseDto);
     return course;
   }
+
   @Patch(':id')
   @UseGuards(AuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
@@ -71,6 +72,24 @@ export class CoursesController {
     const course = await this.coursesService.update(id, updateCourseDto);
     return course;
   }
+
+  @Get('admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get all courses details for admins',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async findAllForAdmin() {
+    const courses = await this.coursesService.findAllForAdmin();
+    return courses;
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get course data without purchasing',
@@ -84,6 +103,7 @@ export class CoursesController {
     const course = await this.coursesService.findOne(id);
     return course;
   }
+
   @Get()
   @ApiOperation({
     summary: 'Get all courses data without purchasing',
