@@ -4,7 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { NewOrderNotfication } from './dto/notifications.dto';
+import {
+  CourseNotificationDto,
+  CreateNotificationDto,
+} from './dto/notifications.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -53,15 +56,39 @@ export class NotificationsService {
       throw new InternalServerErrorException();
     }
   }
-  // send new order notification
-  async newOrder({ userId, courseName }: NewOrderNotfication) {
+
+  async create({ userId, title, message }: CreateNotificationDto) {
     try {
       await this.prisma.notification.create({
         data: {
           userId,
-          title: `New Order`,
-          message: `You have a new order from ${courseName}`,
+          title,
+          message,
         },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+  // send new order notification
+  async newOrder({ userId, courseName }: CourseNotificationDto) {
+    try {
+      await this.create({
+        userId,
+        title: `New Order`,
+        message: `You have a new order from ${courseName}`,
+      });
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+  // send new review notification
+  async newReview({ userId, courseName }: CourseNotificationDto) {
+    try {
+      await this.create({
+        userId,
+        title: `New Review`,
+        message: `You have a new review from ${courseName}`,
       });
     } catch (error) {
       throw new InternalServerErrorException(error);
