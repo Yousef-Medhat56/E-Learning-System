@@ -8,6 +8,7 @@ import { AddReviewDto, CreateOrUpdateCourseDto } from './dto/courses.dto';
 import { UpstashRedisService } from 'nestjs-upstash-redis';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PrismaService } from 'nestjs-prisma';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class CoursesService {
@@ -15,6 +16,7 @@ export class CoursesService {
     private readonly redisService: UpstashRedisService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly prisma: PrismaService,
+    private readonly notificationsService: NotificationsService,
   ) {
     this.prisma = new PrismaService({
       prismaOptions: {
@@ -287,15 +289,30 @@ export class CoursesService {
             id: oldReview.id,
           },
           data: reviewData,
+          include: {
+            course: { select: { title: true } },
+          },
         });
-        //TODO: SEND NOTIFICATION TO ADMIN DASHBOARD
+
+        //SEND NOTIFICATION TO ADMIN DASHBOARD
+        await this.notificationsService.newReview({
+          userId,
+          courseName: updatedReview.course.title,
+        });
         return updatedReview;
       } else {
         //create new review
         const newReview = await this.prisma.review.create({
           data: reviewData,
+          include: {
+            course: { select: { title: true } },
+          },
         });
-        //TODO: SEND NOTIFICATION TO ADMIN DASHBOARD
+        //SEND NOTIFICATION TO ADMIN DASHBOARD
+        await this.notificationsService.newReview({
+          userId,
+          courseName: newReview.course.title,
+        });
         return newReview;
       }
     } catch (error) {

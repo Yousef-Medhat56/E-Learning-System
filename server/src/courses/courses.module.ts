@@ -6,6 +6,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { SectionsService } from './sections/sections.service';
 import { EmailService } from 'src/email/email.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Module({
   controllers: [CoursesController],
@@ -16,6 +17,7 @@ import { EmailService } from 'src/email/email.service';
     CloudinaryService,
     SectionsService,
     EmailService,
+    NotificationsService,
   ],
 })
 export class CoursesModule {}
