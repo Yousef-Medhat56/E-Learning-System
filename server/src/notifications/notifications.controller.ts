@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { RoleGuard } from 'src/auth/guards/roles.guard';
@@ -16,6 +16,14 @@ export class NotificationsController {
   @Roles(Role.ADMIN)
   async getAll() {
     const notifications = await this.notificationsService.getAll();
+    return notifications;
+  }
+
+  @Patch('update-status/:id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  async updateStatus(@Param() { id }: { id: string }) {
+    const notifications = await this.notificationsService.updateStatus(id);
     return notifications;
   }
 }
