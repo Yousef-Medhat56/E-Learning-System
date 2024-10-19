@@ -4,6 +4,7 @@ import {
   Get,
   Patch,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -344,8 +345,8 @@ export class UsersController {
     description: 'Success',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async findAllForAdmin() {
-    const users = await this.usersService.findAllForAdmin();
+  async findAllForAdmin(@Query('adminsOnly') adminsOnly: boolean) {
+    const users = await this.usersService.findAllForAdmin(adminsOnly);
     return users;
   }
 }

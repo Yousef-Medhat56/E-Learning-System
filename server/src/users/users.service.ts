@@ -326,9 +326,13 @@ export class UsersService {
     }
   }
 
-  async findAllForAdmin() {
+  async findAllForAdmin(adminsOnly: boolean = false) {
     try {
-      const users = await this.prisma.user.findMany();
+      const users = await this.prisma.user.findMany({
+        where: {
+          role: adminsOnly ? 'ADMIN' : { in: ['USER', 'ADMIN'] },
+        },
+      });
       return { users };
     } catch (error) {
       throw new InternalServerErrorException();
