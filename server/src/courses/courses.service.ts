@@ -330,4 +330,29 @@ export class CoursesService {
       throw new BadRequestException();
     }
   }
+
+  async delete(id: string) {
+    try {
+      const courseExists = await this.prisma.course.findUnique({
+        where: {
+          id,
+        },
+      });
+      if (!courseExists) {
+        throw new NotFoundException('Course not found');
+      }
+
+      const deletedCourse = await this.prisma.course.delete({
+        where: { id },
+      });
+
+      await this.redisService.del(id);
+      await this.redisService.del('allCourses');
+
+      return deletedCourse;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException();
+    }
+  }
 }

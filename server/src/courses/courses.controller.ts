@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -106,7 +107,7 @@ export class CoursesController {
 
   @Get()
   @ApiOperation({
-    summary: 'Get all courses data without purchasing',
+    summary: 'Get all courses data --without purchasing',
   })
   @ApiResponse({
     status: 201,
@@ -134,6 +135,7 @@ export class CoursesController {
     const sectionContent = await this.sectionsService.getContent(sectionId);
     return sectionContent;
   }
+
   @Post(':courseId/sections/:sectionId/comments')
   @UseGuards(AuthGuard, CourseGuard, CourseSectionGuard)
   @ApiOperation({
@@ -159,6 +161,7 @@ export class CoursesController {
     );
     return newComment;
   }
+
   @Post(':courseId/reviews')
   @UseGuards(AuthGuard, CourseGuard)
   @ApiOperation({
@@ -183,5 +186,23 @@ export class CoursesController {
       review,
     );
     return newReview;
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(Role.ADMIN)
+  @ApiOperation({
+    summary: 'Delete a course --for admins',
+  })
+  @ApiBearerAuth()
+  @ApiResponse({
+    status: 201,
+    description: 'Success',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 404, description: 'Course not found' })
+  async delete(@Param() { id }: { id: string }) {
+    const deletedCourse = await this.coursesService.delete(id);
+    return deletedCourse;
   }
 }
