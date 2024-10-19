@@ -77,7 +77,7 @@ export class CoursesController {
   @UseGuards(AuthGuard, RoleGuard)
   @Roles(Role.ADMIN)
   @ApiOperation({
-    summary: 'Get all courses details for admins',
+    summary: 'Get all courses --for admins',
   })
   @ApiBearerAuth()
   @ApiResponse({

@@ -98,4 +98,13 @@ export class OrdersService {
       throw new InternalServerErrorException();
     }
   }
+
+  async findAllForAdmin() {
+    try {
+      const orders = await this.prisma.order.findMany();
+      return { orders };
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
 }
